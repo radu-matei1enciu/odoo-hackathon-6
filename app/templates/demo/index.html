@@ -1,13 +1,34 @@
-{% extends 'base.html' %}
+{# Standalone on purpose: /demo is outside the simulation, so it doesn't extend
+   base.html and its look never depends on the tier. #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo controls</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/demo.css') }}">
+</head>
+<body>
+  <main class="panel">
+    <h1>Demo controls</h1>
+    <p class="hint">Simulates the server's power state. Not part of the real site.</p>
 
-{% block title %}Demo controls{% endblock %}
+    <form method="post">
+      <label for="battery">Battery</label>
+      <div class="slider">
+        <input type="range" id="battery" name="battery" min="0" max="100"
+               value="{{ energy.battery }}"
+               oninput="this.form.elements.shown.value = this.value + '%'">
+        <output name="shown" for="battery">{{ energy.battery }}%</output>
+      </div>
+      <button type="submit">Apply</button>
+    </form>
 
-{% block content %}
-  <h1>Demo controls</h1>
-  <form method="post">
-    <label>Battery
-      <input type="range" name="battery" min="0" max="100" value="{{ energy.battery }}">
-    </label>
-    <button type="submit">Apply</button>
-  </form>
-{% endblock %}
+    <dl class="state">
+      <dt>Board tier</dt><dd><span class="tier tier-{{ tier }}">{{ tier }}</span></dd>
+    </dl>
+
+    <a class="back" href="{{ url_for('board.index') }}">Open the board &rarr;</a>
+  </main>
+</body>
+</html>

@@ -1,6 +1,10 @@
-from flask import g
+from flask import g, request
 
-TIERS = ("full", "minimal")  # best to worst
+TIERS = ("full", "minimal", "rest")  # best to worst; rest sends REST_MESSAGE only
+REST_MESSAGE = (
+    "Solar board is down: the battery is low. "
+    "It will come back up when the battery is at 10% or more.\n"
+)
 
 # Placeholder store for the simulated signals. Open decision: keep in memory
 # or persist (e.g. a one-row table). Only read_energy/set_energy touch it.
@@ -20,12 +24,10 @@ def choose_tier(energy):
     battery = energy["battery"]
     # placeholder thresholds, to confirm with the team
     if battery >= 50:
-        index = 0
-    elif battery >= 10:
-        index = 1
-    else:
-        index = 2
-    return TIERS[min(index, len(TIERS) - 1)]
+        return "full"
+    if battery >= 10:
+        return "minimal"
+    return "rest"
 
 
 def init_app(app):
@@ -33,6 +35,11 @@ def init_app(app):
     def load_tier():
         g.energy = read_energy()
         g.tier = choose_tier(g.energy)
+        # /demo is outside the simulation (its own fixed style), so it and the
+        # static files it needs stay up, otherwise the battery can't be raised again
+        if g.tier == "rest" and request.blueprint != "demo" \
+                and request.endpoint != "static":
+            return REST_MESSAGE, 503, {"Content-Type": "text/plain; charset=utf-8"}
 
     @app.context_processor
     def inject_energy():
