@@ -31,7 +31,7 @@
              oninput="this.form.elements.sun_shown.value = this.value + '%'">
 
       <label for="wind_speed">Wind speed <output class="now" name="wind_speed_shown" for="wind_speed">{{ energy.wind_speed }} m/s</output></label>
-      <input type="range" id="wind_speed" name="wind_speed" min="0" max="20"
+      <input type="range" id="wind_speed" name="wind_speed" min="0" max="{{ wind_max }}"
              value="{{ energy.wind_speed }}"
              oninput="this.form.elements.wind_speed_shown.value = this.value + ' m/s'">
 
