@@ -13,18 +13,38 @@
     <h1>Demo controls</h1>
     <p class="hint">Simulates the server's power state. Not part of the real site.</p>
 
+    <form method="post" class="presets">
+      {% for name in presets %}
+        <button type="submit" name="preset" value="{{ name }}">{{ name }}</button>
+      {% endfor %}
+    </form>
+
     <form method="post">
-      <label for="battery">Battery</label>
-      <div class="slider">
-        <input type="range" id="battery" name="battery" min="0" max="100"
-               value="{{ energy.battery }}"
-               oninput="this.form.elements.shown.value = this.value + '%'">
-        <output name="shown" for="battery">{{ energy.battery }}%</output>
-      </div>
+      <label for="battery">Battery <output class="now" name="battery_shown" for="battery">{{ energy.battery }}%</output></label>
+      <input type="range" id="battery" name="battery" min="0" max="100"
+             value="{{ energy.battery }}"
+             oninput="this.form.elements.battery_shown.value = this.value + '%'">
+
+      <label for="sun">Sun <output class="now" name="sun_shown" for="sun">{{ energy.sun }}%</output></label>
+      <input type="range" id="sun" name="sun" min="0" max="100"
+             value="{{ energy.sun }}"
+             oninput="this.form.elements.sun_shown.value = this.value + '%'">
+
+      <label for="wind_speed">Wind speed <output class="now" name="wind_speed_shown" for="wind_speed">{{ energy.wind_speed }} m/s</output></label>
+      <input type="range" id="wind_speed" name="wind_speed" min="0" max="20"
+             value="{{ energy.wind_speed }}"
+             oninput="this.form.elements.wind_speed_shown.value = this.value + ' m/s'">
+
       <button type="submit">Apply</button>
     </form>
 
     <dl class="state">
+      <dt>Solar</dt><dd>{{ '%.1f'|format(energy.solar_w) }} W</dd>
+      <dt>Wind</dt><dd>{{ '%.1f'|format(energy.wind_w) }} W</dd>
+      <dt>Power in</dt><dd>{{ '%.1f'|format(energy.power_in) }} W</dd>
+      <dt>Power out</dt><dd>{{ '%.1f'|format(energy.power_out) }} W</dd>
+      <dt>Runway</dt>
+      <dd>{% if energy.runway_h is none %}charging{% else %}{{ '%.1f'|format(energy.runway_h) }} h{% endif %}</dd>
       <dt>Board tier</dt><dd><span class="tier tier-{{ tier }}">{{ tier }}</span></dd>
     </dl>
 

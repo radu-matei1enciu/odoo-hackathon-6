@@ -10,7 +10,7 @@
   <header>
     <a href="{{ url_for('board.index') }}">Board</a>
     <a href="{{ url_for('demo.index') }}">Demo</a>
-    <span class="status">{{ tier }} · {{ energy.battery }}% · {{ energy.weather }}</span>
+    <span class="status">{{ tier }} · {{ energy.battery }}% · {% if energy.runway_h is none %}charging{% else %}{{ '%.1f'|format(energy.runway_h) }} h left{% endif %}</span>
   </header>
   {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
