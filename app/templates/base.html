@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Board{% endblock %}</title>
+  {% if tier == 'full' %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&display=swap">
+  {% endif %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ tier ~ '.css') }}">
 </head>
 <body>
@@ -12,6 +16,14 @@
     <a href="{{ url_for('demo.index') }}">Demo</a>
     <span class="status">{{ tier }} · {{ energy.battery }}% · {% if energy.runway_h is none %}charging{% else %}{{ '%.1f'|format(energy.runway_h) }} h left{% endif %}</span>
   </header>
+  {% if tier == 'full' %}
+    <section class="band" style="--level: {{ energy.battery }}" aria-label="Battery level">
+      <h1 class="band-title">Community board</h1>
+      <div class="ground"></div>
+      <p class="level">Battery {{ energy.battery }}%.
+        {% if energy.battery >= 80 %}The server is running on full sunlight.{% else %}Plenty of energy for the full version.{% endif %}</p>
+    </section>
+  {% endif %}
   {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
   {% endfor %}
