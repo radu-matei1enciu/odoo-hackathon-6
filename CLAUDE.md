@@ -24,6 +24,7 @@ app/
   templates/    base.html, board/, demo/
   static/       css/<tier>.css, css/demo.css, js/
 instance/       SQLite file (gitignored)
+docs/           planning notes: IDEAS.md, MEDIA-UPLOAD.md (planned photo/video uploads)
 ```
 
 ## How the tier is chosen
@@ -63,7 +64,7 @@ Energy-budget formula, hysteresis, footprint/energy label, measurement, image di
 
 - Idiomatic Flask only, tutorial style: factory, `init_app` per module, blueprints, `g`, `url_for`. No extra layers (no service/repository/hexagonal), no tests folder.
 - Show code changes inline with explicit add/remove annotations. No zip files.
-- Do not create new markdown files unless asked. Discuss in chat.
+- Do not create new markdown files unless asked. Discuss in chat. Markdown other than README.md and CLAUDE.md lives in `docs/`.
 - Flag gaps and ambiguities instead of filling them in silently.
 
 ## Run
