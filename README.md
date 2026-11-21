@@ -1,7 +1,5 @@
 # Solar-Powered Adaptive Website (working title)
 
-Nov 21, 2026 · @Radu-Matei Enciu
-
 ## Context
 
 This is a hackathon project with a solarpunk theme, meant to be demonstrated on a laptop.
