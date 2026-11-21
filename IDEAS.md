@@ -6,7 +6,8 @@ Open ideas and decisions for the features, tiers and technical side of the proje
 
 **Said by the team:** a messaging board where everyone can post messages for everyone else to see, plus alerts in case of emergencies. News could be posted here too, like a social media feed.
 
-**Open questions**
+### Open questions
+
 - Post types: plain message, news item, emergency alert. Do we need all three?
 - Who can post? Anyone, or only some people for news and alerts?
 - Do posts show a name, or can they be anonymous?
@@ -55,21 +56,25 @@ Open ideas and decisions for the features, tiers and technical side of the proje
 
 Optional ideas. Decide which of these, if any, go in the first version.
 
-**Smaller extras**
+### Smaller extras
+
 - A real Open-Meteo forecast instead of a simulated one.
 - A sleep mode when idle.
 - Automatic image dithering.
 - A "notify me when the full version is back" option.
 
-**Measurement**
+### Measurement
+
 - **Proposed:** a footprint meter showing bytes actually sent per page, plus estimated energy and CO₂.
 - **Decide:** bytes only (measurable and honest), or estimates as well?
 
-**Switching behaviour**
+### Switching behaviour
+
 - **Proposed:** a 5-point buffer before moving up and a 60-second hold (5 seconds in the demo) so the page does not flicker.
 - **Decide:** do we need this, or is it fine for the tier to change instantly each time a threshold is crossed?
 
-**Combining signals into one number**
+### Combining signals into one number
+
 - **Proposed:** a weighted score from 0 to 100 (0.55 battery, 0.25 solar, 0.20 forecast, minus a load penalty).
 - **Alternative:** battery decides the tier alone, and the other signals only nudge it up or down one step.
 - **Decide:** a formula, or simple rules like "battery below 30 % and cloudy means drop a tier"? Rules are easier to explain on stage.

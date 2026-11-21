@@ -1,0 +1,4 @@
+/* minimal tier: function over form */
+body { font-family: monospace; background: #fff; color: #000; }
+.post { margin: .5rem 0; }
+.post.alert { font-weight: bold; }

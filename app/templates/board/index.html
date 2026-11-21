@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Board{% endblock %}
+
+{% block content %}
+  <form method="post" action="{{ url_for('board.create') }}">
+    <select name="kind">
+      {% for kind in kinds %}<option value="{{ kind }}">{{ kind }}</option>{% endfor %}
+    </select>
+    <input name="author" placeholder="Name (optional)" maxlength="60">
+    <textarea name="body" required></textarea>
+    <button type="submit">Post</button>
+  </form>
+
+  <ul id="feed">
+    {% for post in posts %}
+      <li class="post {{ post.kind }}">
+        <strong>{{ post.kind }}</strong>
+        {{ post.author or 'anonymous' }}
+        <p>{{ post.body }}</p>
+        <small>{{ post.created }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

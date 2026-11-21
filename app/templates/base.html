@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Board{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ tier ~ '.css') }}">
+</head>
+<body>
+  <header>
+    <a href="{{ url_for('board.index') }}">Board</a>
+    <a href="{{ url_for('demo.index') }}">Demo</a>
+    <span class="status">{{ tier }} · {{ energy.battery }}% · {{ energy.weather }}</span>
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  {% if tier == 'full' %}
+    <script src="{{ url_for('static', filename='js/refresh.js') }}" defer></script>
+  {% endif %}
+</body>
+</html>
