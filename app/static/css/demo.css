@@ -22,10 +22,14 @@ body {
 h1 { margin: 0; font-size: 1.25rem; }
 .hint { margin: .25rem 0 1.5rem; color: var(--muted); font-size: .9rem; }
 
-label { display: block; font-weight: 600; margin-bottom: .4rem; }
-.slider { display: flex; align-items: center; gap: .75rem; }
-input[type=range] { flex: 1; accent-color: var(--accent); }
-output { min-width: 3.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+label { display: flex; justify-content: space-between; font-weight: 600;
+        margin: 1rem 0 .4rem; }
+label .now { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.presets button { margin-top: 0; background: transparent; color: var(--accent);
+                  border: 1px solid var(--accent); text-transform: capitalize; }
 
 button {
   margin-top: 1rem; width: 100%; padding: .6rem; border: 0; border-radius: 8px;
@@ -35,9 +39,9 @@ button {
 button:hover { filter: brightness(1.08); }
 
 .state { margin: 1.5rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line);
-         display: flex; justify-content: space-between; }
+         display: grid; grid-template-columns: 1fr auto; gap: .35rem 1rem; }
 .state dt { color: var(--muted); }
-.state dd { margin: 0; }
+.state dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .tier { padding: .1rem .55rem; border-radius: 999px; font-size: .85rem; font-weight: 600;
         border: 1px solid currentColor; }
 .tier-full { color: var(--accent); }

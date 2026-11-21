@@ -1,33 +1,64 @@
 from flask import g, request
 
+# Placeholder constants, easy to tweak
+CAPACITY_WH = 100       # battery capacity
+DRAW_W = 10             # constant server draw
+PANEL_RATED_W = 40      # solar panel output at 100% sun
+TURBINE_RATED_W = 20    # wind turbine output at or above WIND_RATED
+WIND_CUT_IN = 3         # m/s, turbine produces nothing below this
+WIND_RATED = 12         # m/s, turbine reaches rated output here
+RUNWAY_FULL_H = 12      # runway at or above this (or charging) means "full"
+REST_BELOW = 10         # battery % below which the site rests
+
 TIERS = ("full", "minimal", "rest")  # best to worst; rest sends REST_MESSAGE only
 REST_MESSAGE = (
     "Solar board is down: the battery is low. "
-    "It will come back up when the battery is at 10% or more.\n"
+    f"It will come back up when the battery is at {REST_BELOW}% or more.\n"
 )
 
-# Placeholder store for the simulated signals. Open decision: keep in memory
+# Placeholder store for the simulated causes. Open decision: keep in memory
 # or persist (e.g. a one-row table). Only read_energy/set_energy touch it.
-_state = {"battery": 100}
+_state = {"battery": 100, "sun": 100, "wind_speed": 0}
+
+
+def _wind_w(v):
+    if v < WIND_CUT_IN:
+        return 0.0
+    if v >= WIND_RATED:
+        return float(TURBINE_RATED_W)
+    return TURBINE_RATED_W * (v**3 - WIND_CUT_IN**3) / (WIND_RATED**3 - WIND_CUT_IN**3)
 
 
 def read_energy():
-    return dict(_state)
+    """Stored causes plus the readings and balance derived from them."""
+    energy = dict(_state)
+    energy["solar_w"] = PANEL_RATED_W * energy["sun"] / 100
+    energy["wind_w"] = _wind_w(energy["wind_speed"])
+    energy["power_in"] = energy["solar_w"] + energy["wind_w"]
+    energy["power_out"] = DRAW_W
+    energy["stored_wh"] = CAPACITY_WH * energy["battery"] / 100
+    energy["net_w"] = energy["power_in"] - energy["power_out"]
+    # hours until empty at the current net power; None while not draining
+    energy["runway_h"] = (
+        energy["stored_wh"] / -energy["net_w"] if energy["net_w"] < 0 else None
+    )
+    return energy
 
 
-def set_energy(battery):
+def set_energy(battery, sun, wind_speed):
     _state["battery"] = max(0, min(100, battery))
+    _state["sun"] = max(0, min(100, sun))
+    _state["wind_speed"] = max(0, min(20, wind_speed))
 
 
 def choose_tier(energy):
-    """Battery picks the tier; cloudy weather drops it one step."""
-    battery = energy["battery"]
-    # placeholder thresholds, to confirm with the team
-    if battery >= 50:
+    """Low battery rests; otherwise runway picks full or minimal."""
+    if energy["battery"] < REST_BELOW:
+        return "rest"
+    runway = energy["runway_h"]
+    if runway is None or runway >= RUNWAY_FULL_H:
         return "full"
-    if battery >= 10:
-        return "minimal"
-    return "rest"
+    return "minimal"
 
 
 def init_app(app):
