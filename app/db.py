@@ -19,10 +19,14 @@ class Post(db.Model):
     body = db.Column(db.Text, nullable=False)
     created = db.Column(db.DateTime, nullable=False, server_default=func.now())
     # last day the post is shown; purge-expired deletes it at the midnight after
-    expires_on = db.Column(db.Date, nullable=False)
-    hearts = db.Column(db.Integer, nullable=False, default=0)  # 💚 count, no per-person limit
+    expires_on = db.Column(db.Date, nullable=False, default=1)
+    hearts = db.Column(
+        db.Integer, nullable=False, default=0
+    )  # green heart count, no per-person limit
     attachments = db.relationship(
-        "Attachment", backref="post", order_by="Attachment.id",
+        "Attachment",
+        backref="post",
+        order_by="Attachment.id",
         cascade="all, delete-orphan",
     )
 
@@ -30,7 +34,9 @@ class Post(db.Model):
 class Attachment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.ForeignKey("post.id"), nullable=False)
-    filename = db.Column(db.String(64), nullable=False)  # name on disk: uuid4 hex + extension
+    filename = db.Column(
+        db.String(64), nullable=False
+    )  # name on disk: uuid4 hex + extension
     original_name = db.Column(db.String(255))  # what the user uploaded, display only
     kind = db.Column(db.String(10), nullable=False)  # image | video
     mimetype = db.Column(db.String(50), nullable=False)
@@ -78,44 +84,50 @@ def init_db_command():
         Post(
             kind="alert",
             author="Grid ops",
-            body="Storm front expected tonight. Expect reduced service.",
+            body="Storm coming in tonight, gusts up to 25 m/s after 9 pm. Tie down "
+            "anything loose on the roofs. The board might go quiet for a bit if "
+            "the battery runs low.",
             expires_on=expires_on(1),
         ),
         Post(
             kind="news",
             author="Council",
-            body="The community garden opens its new solar dryer on Saturday.",
+            body="The solar dryer at the community garden is finished. First drying "
+            "day is Saturday from 10. Bring your own trays, we only have six.",
         ),
         Post(
             kind="message",
             author="Mira",
-            body="Anyone have spare bike tubes? Swap for tomatoes.",
+            body="Does anyone have a spare 28 inch bike tube? Can pay in tomatoes.",
         ),
-        Post(kind="message", body="Lost: green thermos near the market."),
-        # former hard-coded examples from board/index.html (text only, no media field yet)
+        Post(
+            kind="message",
+            body="Lost a green thermos near the market on Thursday, dent on the lid. "
+            "If you find it please leave it at the bakery.",
+        ),
         Post(
             kind="message",
             author="Sam",
-            body="Our rooftop garden is finally in bloom 🌱 The tomatoes are ripe "
-            "and the bees have moved in 🐝 Come and see it this weekend!",
+            body="Rooftop garden on Elm Street is finally blooming. The tomatoes are "
+            "ripe and we have bees now. Come up on Sunday if you want a look, door's open.",
         ),
         Post(
             kind="message",
             author="Mika",
-            body="Photos from yesterday’s community bike repair 🚲🛠️ "
-            "Thank you to everyone who brought tools and cake 🍰",
+            body="Thanks to everyone who came to the bike repair afternoon. We got 14 "
+            "bikes running again and somebody brought a whole cake. Same again next month.",
         ),
         Post(
             kind="message",
             author="Jules",
-            body="Thank you all for helping with the market stall yesterday 🙌🍅💚 "
-            "See you next Saturday!",
+            body="Thanks for the help at the market stall yesterday, the jam was gone "
+            "by noon. Same time next Saturday?",
         ),
         Post(
             kind="news",
             author="Robin",
-            body="Workshop recording: how to build a small solar charger ☀️🔧 "
-            "Missed Saturday’s session? The full video is here.",
+            body="Running the solar charger workshop again next Saturday for those "
+            "who missed it. Tools are there, just bring an old phone cable.",
         ),
     ]
     for post in seeds:  # seeds without an explicit lifetime stay up a week

@@ -22,6 +22,12 @@ MEDIA_TYPES = {
 
 
 @bp.route("/")
+def home():
+    # landing page: photo, a short intro and a button to the board
+    return render_template("home.html")
+
+
+@bp.route("/board")
 def index():
     # alerts pinned first in every tier, then newest first. Expired posts are
     # skipped even if the nightly purge-expired hasn't run yet.

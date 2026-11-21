@@ -62,7 +62,14 @@
       {% endif %}
       {# plain form, so it works in every tier without JS #}
       <form class="reactions" method="post" action="{{ url_for('board.heart', post_id=post.id) }}">
-        <button type="submit" aria-label="Give a green heart, {{ post.hearts }} so far">💚 {{ post.hearts }}</button>
+        <button type="submit" aria-label="Give a green heart, {{ post.hearts }} so far">
+          {# line-art heart; colours on the SVG itself so it also works in tiers without CSS for it #}
+          <svg class="heart" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"
+               fill="#84D175" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+            <path d="M12 20.5C6 16 2.5 12.6 2.5 8.6 2.5 5.6 4.8 3.5 7.4 3.5c2 0 3.6 1.2 4.6 2.8 1-1.6 2.6-2.8 4.6-2.8 2.6 0 4.9 2.1 4.9 5.1 0 4-3.5 7.4-9.5 11.9z"/>
+          </svg>
+          {{ post.hearts }}
+        </button>
       </form>
       <small class="when">
         <time datetime="{{ post.created.isoformat() }}Z">{{ post.created|posted }}</time>

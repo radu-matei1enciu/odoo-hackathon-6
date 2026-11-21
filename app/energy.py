@@ -36,6 +36,8 @@ def read_energy():
     energy = dict(_state)
     energy["solar_w"] = PANEL_RATED_W * energy["sun"] / 100
     energy["wind_w"] = _wind_w(energy["wind_speed"])
+    # turbine braked for safety (as opposed to just no wind)
+    energy["wind_too_strong"] = energy["wind_speed"] >= WIND_CUT_OUT
     energy["power_in"] = energy["solar_w"] + energy["wind_w"]
     energy["power_out"] = DRAW_W
     energy["stored_wh"] = CAPACITY_WH * energy["battery"] / 100
