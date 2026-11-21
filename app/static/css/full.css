@@ -1,4 +1,436 @@
-/* full tier: richest look */
-body { font-family: Georgia, serif; background: linear-gradient(#fff8dc, #d9f2c4); margin: 0; padding: 1rem; }
-.post { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0002; padding: 1rem; margin: 1rem 0; list-style: none; }
-.post.alert { border-left: 8px solid #d33; }
+/* FULL TIER:
+   Palette: Frosted Mint #E6FBDA, Lemon Chiffon #FFF8D2, Moss Green #84D175,
+   Dusk Blue #3E5BA3, Deep Space Blue #0C2D45. */
+
+:root {
+  --mint: #E6FBDA;
+  --chiffon: #FFF8D2;
+  --moss: #84D175;
+  --dusk: #3E5BA3;
+  --deep: #0C2D45;
+  --rule: var(--moss);
+  --radius: 22px;
+  --gutter: clamp(20px, 6vw, 80px);
+  --col: min(1240px, calc(100% - 2 * var(--gutter)));   /* the centered page column */
+  --display: "Gloock", Georgia, "Times New Roman", serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--mint);
+  color: var(--deep);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+a { color: var(--deep); }
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--deep);
+  outline-offset: 3px;
+}
+
+/* ---------- Top navigation ---------- */
+body > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 40px;
+  width: var(--col);
+  margin: 0 auto;
+  padding: 18px 0 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+body > header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 5px solid transparent;
+  text-decoration: none;
+}
+body > header a[aria-current="page"] { border-bottom-color: var(--moss); }   /* set in base.html on the page you are on */
+body > header a:hover { text-decoration: underline; }
+/* the battery band already shows this, so the plain status text is hidden here */
+body > header .status { display: none; }
+
+/* ---------- Battery band: the sun sits higher when the battery is fuller ---------- */
+.band {
+  --level: 100;
+  --ground: 56px;           /* height of the strip under the horizon line */
+  position: relative;
+  overflow: hidden;
+  height: clamp(260px, 30vw, 320px);
+  margin-top: 8px;
+  background: var(--moss);
+  isolation: isolate;
+  text-align: center;
+}
+.band::before, .band::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+}
+.band::before { left: -100px; top: -140px; width: 460px; height: 460px; background: var(--chiffon); opacity: .85; }
+.band::after  { right: -80px; top: -40px; width: 420px; height: 420px; background: var(--mint); opacity: .7; }
+
+.band-title {
+  position: absolute;
+  inset: 0 0 var(--ground) 0;      /* centered in the green area above the horizon line */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 var(--gutter);
+  text-align: center;
+  text-wrap: balance;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 1.05;
+}
+.band .sun {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--ground) + 6px);
+  width: clamp(110px, 18vw, 180px);
+  height: auto;
+  fill: var(--dusk);
+  /* 100% battery = fully above the horizon; lower battery = sinks behind it */
+  transform: translate(-50%, calc((100 - var(--level)) * var(--k, 2px)));
+  z-index: 0;
+}
+.band .ground {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: var(--ground);
+  background: var(--mint);
+  border-top: 3px solid var(--deep);
+  z-index: 1;
+}
+.band .level {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 14px;
+  text-align: center;
+  margin: 0;
+  font-weight: 600;
+  z-index: 2;
+}
+
+/* ---------- Flash messages ---------- */
+.flash {
+  width: var(--col);
+  margin: 28px auto 0;
+  padding: 14px 20px;
+  background: var(--moss);
+  border-radius: 14px;
+  font-weight: 600;
+}
+
+main { padding-bottom: 72px; }
+
+/* ---------- Composer ---------- */
+.composer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 20px;
+  margin: 0 0 24px;
+}
+.composer select,
+.composer input {
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid var(--deep);
+  border-radius: 0;
+  background: transparent;
+  color: var(--deep);
+  font: inherit;
+  font-weight: 600;
+}
+.composer select { flex: 0 0 auto; text-transform: capitalize; padding-right: 8px; }
+.composer input  { flex: 1 1 220px; }
+.composer textarea {
+  flex: 1 1 100%;
+  min-height: 96px;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 3px solid var(--deep);
+  border-radius: 0;
+  background: transparent;
+  color: var(--deep);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.composer ::placeholder { color: var(--dusk); opacity: 1; }
+.composer button {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--dusk);
+  color: var(--mint);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.composer button:hover { background: var(--deep); }
+
+/* ---------- Feed ---------- */
+/* the lists themselves are laid out in the "Split screen" section below */
+.post {
+  margin: 0;
+  padding: 30px 0;
+  border-top: 2px solid var(--rule);
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  font-size: 20px;           /* the kind and author line, and the reactions */
+  font-weight: 600;
+}
+.post strong {
+  margin-right: .5em;
+  font-size: 24px;
+  text-transform: capitalize;
+}
+.post .author { font-size: 24px; text-transform: none; }   /* the user name, same size as the text */
+.post.news strong {
+  padding: 2px 12px;
+  background: var(--moss);
+  border-radius: 8px;
+}
+.post p {
+  margin: 10px 0 12px;
+  max-width: 62ch;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.post small {
+  display: block;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--dusk);
+}
+
+/* ---------- Alerts: pinned first, never dimmed, full contrast ---------- */
+.post.alert {
+  margin: 8px 0 0;
+  padding: 28px 32px;
+  border: 3px solid var(--deep);
+  border-radius: var(--radius);
+  background: var(--deep);
+  color: var(--mint);
+}
+.post.alert strong {
+  display: block;
+  margin: 0 0 6px;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.2;
+  color: var(--moss);
+}
+.post.alert p { font-size: 24px; margin: 8px 0 12px; }
+.post.alert small { color: var(--chiffon); }
+/* the first post after the last alert should not draw a rule right under the alert block */
+.post.alert + .post:not(.alert) { border-top: 0; }
+.post.alert + .post.alert { margin-top: 16px; }
+
+/* ---------- Placeholders: composer buttons, media, reactions (no logic yet) ---------- */
+.composer .tools { display: flex; flex-wrap: wrap; gap: 4px 20px; flex: 1 1 auto; }
+.composer button.tool,
+.composer button.tool:hover {
+  margin: 0;
+  padding: 0 2px;
+  border-radius: 0;
+  background: none;
+  color: var(--deep);
+}
+.composer button.tool:hover { text-decoration: underline; }
+
+.media {
+  position: relative;
+  overflow: hidden;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  margin: 14px 0 6px;
+  border-radius: var(--radius);
+  background: var(--moss);
+}
+.media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 55%;
+}
+.media .chip,
+.media .duration {
+  position: absolute;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--deep);
+  color: var(--mint);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.media .chip { left: 12px; top: 12px; }
+.media .duration { right: 12px; bottom: 12px; }
+.media .play {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 72px; height: 72px;
+  margin: -36px 0 0 -36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: var(--mint);
+}
+.media .play svg { width: 30px; height: 30px; fill: var(--deep); }
+
+.reactions { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 4px; }
+.reactions button {
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--deep);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.reactions button:hover { border-bottom-color: var(--deep); }
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 720px;
+  margin: 14px 0 6px;
+}
+.media-grid .media { margin: 0; aspect-ratio: 4 / 3; max-width: none; }
+.reactions .replies {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--deep);
+}
+.examples-title {
+  margin: 36px 0 0;
+  padding: 18px 24px 0;
+  background: var(--moss);
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.2;
+}
+.examples-note {
+  margin: 0 0 16px;
+  padding: 4px 24px 18px;
+  background: var(--moss);
+  border-radius: 0 0 var(--radius) var(--radius);
+  color: var(--deep);
+}
+
+/* ---------- Split screen: messages left, alerts and news right ---------- */
+/* No boxes: both sides sit directly on the page. The left side scrolls with the page,
+   the right side stays in view and scrolls on its own (scrollbar hidden). */
+.split {
+  width: var(--col);
+  margin: 28px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.pane-side { order: -1; }   /* alerts come first on narrow screens */
+.pane-side:focus-visible { outline: 3px solid var(--deep); outline-offset: 6px; }
+.pane-title {
+  margin: 0 0 16px;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.cards, .stack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.stack { display: grid; gap: 12px; }
+/* messages fill the columns with no empty gaps (cards.js orders them left, right, left, right…; this is the fallback without it) */
+.cards { columns: 280px; column-gap: 12px; }
+.cards > .post { break-inside: avoid; }
+.cards[data-columns] { columns: auto; display: flex; gap: 12px; align-items: flex-start; }   /* set by cards.js */
+.masonry-col { flex: 1 1 0; min-width: 0; }
+.col-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.empty { column-span: all; margin: 0; padding: 8px 0; color: var(--dusk); }
+
+/* posts become cards (alerts keep their own block style) */
+.pane .post:not(.alert) {
+  margin: 0;
+  padding: 20px;
+  border: 2px solid var(--moss);
+  border-radius: 18px;
+}
+.pane .cards > .post:not(.alert) { margin: 0 0 12px; }
+.pane .post.alert { margin: 0; }
+.pane .post.alert + .post.alert { margin-top: 0; }
+.pane .post.alert + .post:not(.alert) { border-top: 2px solid var(--moss); }
+.pane-messages .post:not(.alert) { background: var(--chiffon); }
+.pane-side .post:not(.alert) { background: var(--mint); }
+.pane .post p { max-width: none; }
+.pane .media, .pane .media-grid { max-width: none; }
+
+@media (min-width: 900px) {
+  .band { height: 260px; --ground: 48px; }
+  .band-title { font-size: 64px; }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+  }
+  .pane-side {
+    order: 0;
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;     /* the page does not move while this side scrolls */
+    scrollbar-width: none;            /* hide the scrollbar (Firefox) */
+    padding-bottom: 16px;
+  }
+  .pane-side::-webkit-scrollbar { display: none; }   /* hide the scrollbar (Chrome, Edge, Safari) */
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .band { --ground: 92px; }
+  .band::before { width: 260px; height: 260px; left: -120px; top: -100px; }
+  .band::after  { width: 220px; height: 220px; right: -120px; top: -40px; }
+  .band .level { bottom: 12px; }
+  .band .sun { width: 92px; }
+  .post.alert { padding: 22px 20px; }
+  .examples-title, .examples-note { padding-left: 18px; padding-right: 18px; }
+  .composer button { width: 100%; margin-left: 0; }
+  .composer button.tool { width: auto; }
+  .media { aspect-ratio: 4 / 3; }
+}
