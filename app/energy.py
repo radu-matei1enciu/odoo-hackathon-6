@@ -4,9 +4,11 @@ from flask import g, request
 CAPACITY_WH = 100       # battery capacity
 DRAW_W = 10             # constant server draw
 PANEL_RATED_W = 40      # solar panel output at 100% sun
-TURBINE_RATED_W = 20    # wind turbine output at or above WIND_RATED
+TURBINE_RATED_W = 20    # wind turbine output from WIND_RATED up to WIND_CUT_OUT
 WIND_CUT_IN = 3         # m/s, turbine produces nothing below this
 WIND_RATED = 12         # m/s, turbine reaches rated output here
+WIND_CUT_OUT = 25       # m/s, turbine shuts down (0 W) at or above this
+WIND_MAX = 30           # m/s, top of the demo input range
 RUNWAY_FULL_H = 12      # runway at or above this (or charging) means "full"
 REST_BELOW = 10         # battery % below which the site rests
 
@@ -22,7 +24,7 @@ _state = {"battery": 100, "sun": 100, "wind_speed": 0}
 
 
 def _wind_w(v):
-    if v < WIND_CUT_IN:
+    if v < WIND_CUT_IN or v >= WIND_CUT_OUT:
         return 0.0
     if v >= WIND_RATED:
         return float(TURBINE_RATED_W)
@@ -48,7 +50,7 @@ def read_energy():
 def set_energy(battery, sun, wind_speed):
     _state["battery"] = max(0, min(100, battery))
     _state["sun"] = max(0, min(100, sun))
-    _state["wind_speed"] = max(0, min(20, wind_speed))
+    _state["wind_speed"] = max(0, min(WIND_MAX, wind_speed))
 
 
 def choose_tier(energy):

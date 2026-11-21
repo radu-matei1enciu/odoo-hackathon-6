@@ -1,6 +1,6 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 
-from .energy import set_energy
+from .energy import WIND_MAX, set_energy
 
 bp = Blueprint("demo", __name__, url_prefix="/demo")
 
@@ -9,7 +9,7 @@ PRESETS = {
     "sunny day": {"battery": 60, "sun": 90, "wind_speed": 4},     # charging -> full
     "calm night": {"battery": 40, "sun": 0, "wind_speed": 1},     # 4 h runway -> minimal
     "windy night": {"battery": 50, "sun": 0, "wind_speed": 9},    # ~29 h runway -> full
-    "storm": {"battery": 6, "sun": 5, "wind_speed": 16},          # charging, but low -> rest
+    "storm": {"battery": 6, "sun": 5, "wind_speed": 27},          # turbine cut out, low -> rest
 }
 
 
@@ -26,4 +26,4 @@ def index():
                 request.form.get("wind_speed", 0, type=int),
             )
         return redirect(url_for("demo.index"))
-    return render_template("demo/index.html", presets=PRESETS)
+    return render_template("demo/index.html", presets=PRESETS, wind_max=WIND_MAX)

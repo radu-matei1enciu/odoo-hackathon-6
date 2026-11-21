@@ -36,8 +36,8 @@ One set of templates, one CSS file per page-rendering tier. The CSS file name mu
 
 ## Energy model (`energy.py`, constants at the top, all placeholders)
 
-- Stored state (what `/demo` sets, `set_energy(battery, sun, wind_speed)` clamps): `battery` 0-100 %, `sun` 0-100 % of panel rating, `wind_speed` 0-20 m/s.
-- `read_energy()` returns the stored values plus derived readings: `solar_w = PANEL_RATED_W * sun / 100`; `wind_w` is 0 below `WIND_CUT_IN`, `TURBINE_RATED_W` at or above `WIND_RATED`, cubic in between; `power_in = solar_w + wind_w`, `power_out = DRAW_W`, `stored_wh`, `net_w = power_in - power_out`, `runway_h = stored_wh / -net_w` when draining, else `None` (shown as "charging", also when net is exactly 0).
+- Stored state (what `/demo` sets, `set_energy(battery, sun, wind_speed)` clamps): `battery` 0-100 %, `sun` 0-100 % of panel rating, `wind_speed` 0-`WIND_MAX` (30) m/s.
+- `read_energy()` returns the stored values plus derived readings: `solar_w = PANEL_RATED_W * sun / 100`; `wind_w` is 0 below `WIND_CUT_IN`, cubic up to `WIND_RATED`, `TURBINE_RATED_W` from there up to `WIND_CUT_OUT` (25 m/s), 0 at or above it (turbine shuts down in storms); `power_in = solar_w + wind_w`, `power_out = DRAW_W`, `stored_wh`, `net_w = power_in - power_out`, `runway_h = stored_wh / -net_w` when draining, else `None` (shown as "charging", also when net is exactly 0).
 - `choose_tier`: battery < `REST_BELOW` (10%) gives `rest`, even while charging. Otherwise charging or `runway_h >= RUNWAY_FULL_H` (12 h) gives `full`, else `minimal`.
 
 ## Product rules
