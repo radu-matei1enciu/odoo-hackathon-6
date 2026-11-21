@@ -1,6 +1,13 @@
 # Media upload (photos and videos)
 
-Plan for letting a post carry several photos and videos. Not implemented yet.
+Plan for letting a post carry several photos and videos. **Implemented** (steps 1-4 below); step 5 (Pillow) is not.
+
+Decisions taken for the open points in section 5:
+
+- Media-only posts: not allowed, text is still required.
+- Limits: 4 files per post (`MAX_FILES` in `board.py`), 50 MB per request (`MAX_CONTENT_LENGTH` in `__init__.py`).
+- `minimal`: text links with file size, no thumbnails.
+- EXIF: not stripped yet (needs Pillow).
 
 ## 1. Data model
 

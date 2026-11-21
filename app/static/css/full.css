@@ -9,7 +9,7 @@
   --dusk: #3E5BA3;
   --deep: #0C2D45;
   --rule: var(--moss);
-  --radius: 22px;
+  --radius: 8px;   /* one corner for everything rounded; keep it under half the smallest label's height (~24px) or labels turn into pills */
   --gutter: clamp(20px, 6vw, 80px);
   --col: min(1240px, calc(100% - 2 * var(--gutter)));   /* the centered page column */
   --display: "Gloock", Georgia, "Times New Roman", serif;
@@ -130,7 +130,7 @@ body > header .status { display: none; }
   margin: 28px auto 0;
   padding: 14px 20px;
   background: var(--moss);
-  border-radius: 14px;
+  border-radius: var(--radius);
   font-weight: 600;
 }
 
@@ -157,6 +157,7 @@ main { padding-bottom: 72px; }
 }
 .composer select { flex: 0 0 auto; text-transform: capitalize; padding-right: 8px; }
 .composer input  { flex: 1 1 220px; }
+.composer input.days { flex: 0 0 120px; }
 .composer textarea {
   flex: 1 1 100%;
   min-height: 96px;
@@ -207,7 +208,7 @@ main { padding-bottom: 72px; }
 .post.news strong {
   padding: 2px 12px;
   background: var(--moss);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 .post p {
   margin: 10px 0 12px;
@@ -222,6 +223,19 @@ main { padding-bottom: 72px; }
   font-weight: 400;
   color: var(--dusk);
 }
+/* post time and end date: time as text, the end as a small pill */
+.post .when { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.post .when .sep { display: none; }   /* the pill separates them visually */
+.post .when .ends {
+  padding: 1px 10px;
+  border: 1.5px solid currentColor;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.post .when .ends.soon { background: var(--dusk); border-color: var(--dusk); color: var(--mint); }
+.post.alert .when .ends.soon { background: var(--chiffon); border-color: var(--chiffon); color: var(--deep); }
 
 /* ---------- Alerts: pinned first, never dimmed, full contrast ---------- */
 .post.alert {
@@ -247,17 +261,44 @@ main { padding-bottom: 72px; }
 .post.alert + .post:not(.alert) { border-top: 0; }
 .post.alert + .post.alert { margin-top: 16px; }
 
-/* ---------- Placeholders: composer buttons, media, reactions (no logic yet) ---------- */
-.composer .tools { display: flex; flex-wrap: wrap; gap: 4px 20px; flex: 1 1 auto; }
-.composer button.tool,
-.composer button.tool:hover {
-  margin: 0;
-  padding: 0 2px;
-  border-radius: 0;
-  background: none;
-  color: var(--deep);
+/* ---------- Media: composer file input, post photos and videos ---------- */
+.composer .attach {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--dusk);
+  font-size: 14px;
+  font-weight: 600;
 }
-.composer button.tool:hover { text-decoration: underline; }
+/* the input itself shows the chosen file names next to the button */
+.composer .attach input {
+  flex: 0 0 auto;  /* undo the 220px basis from .composer input: in this column it would be height */
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: var(--dusk);
+  font-size: 15px;
+  font-weight: 400;
+}
+/* the browser's own picker button, styled as an outlined twin of the Post button */
+.composer .attach input::file-selector-button {
+  min-height: 44px;
+  margin-right: 14px;
+  padding: 0 24px;
+  border: 2px solid var(--deep);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--deep);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.composer .attach input:hover::file-selector-button {
+  background: var(--deep);
+  color: var(--mint);
+}
 
 .media {
   position: relative;
@@ -268,40 +309,31 @@ main { padding-bottom: 72px; }
   border-radius: var(--radius);
   background: var(--moss);
 }
-.media img {
+.media a { display: block; width: 100%; height: 100%; }
+.media img,
+.media video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 50% 55%;
 }
-.media .chip,
-.media .duration {
+.media video { object-fit: contain; background: var(--deep); }
+.media .chip {
   position: absolute;
+  left: 12px; top: 12px;
   padding: 3px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--deep);
   color: var(--mint);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
+  pointer-events: none;  /* clicks go to the photo link or video controls */
 }
-.media .chip { left: 12px; top: 12px; }
-.media .duration { right: 12px; bottom: 12px; }
-.media .play {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 72px; height: 72px;
-  margin: -36px 0 0 -36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22px;
-  background: var(--mint);
-}
-.media .play svg { width: 30px; height: 30px; fill: var(--deep); }
 
-.reactions { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 4px; }
+/* green heart counter */
+.reactions { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 4px 0 0; }
 .reactions button {
   min-height: 44px;
   padding: 0 2px;
@@ -314,6 +346,8 @@ main { padding-bottom: 72px; }
   cursor: pointer;
 }
 .reactions button:hover { border-bottom-color: var(--deep); }
+.post.alert .reactions button { color: var(--mint); }
+.post.alert .reactions button:hover { border-bottom-color: var(--mint); }
 
 .media-grid {
   display: grid;
@@ -323,31 +357,6 @@ main { padding-bottom: 72px; }
   margin: 14px 0 6px;
 }
 .media-grid .media { margin: 0; aspect-ratio: 4 / 3; max-width: none; }
-.reactions .replies {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-left: auto;
-  font-weight: 600;
-  color: var(--deep);
-}
-.examples-title {
-  margin: 36px 0 0;
-  padding: 18px 24px 0;
-  background: var(--moss);
-  border-radius: var(--radius) var(--radius) 0 0;
-  font-family: var(--display);
-  font-weight: 400;
-  font-size: 30px;
-  line-height: 1.2;
-}
-.examples-note {
-  margin: 0 0 16px;
-  padding: 4px 24px 18px;
-  background: var(--moss);
-  border-radius: 0 0 var(--radius) var(--radius);
-  color: var(--deep);
-}
 
 /* ---------- Split screen: messages left, alerts and news right ---------- */
 /* No boxes: both sides sit directly on the page. The left side scrolls with the page,
@@ -388,7 +397,7 @@ main { padding-bottom: 72px; }
   margin: 0;
   padding: 20px;
   border: 2px solid var(--moss);
-  border-radius: 18px;
+  border-radius: var(--radius);
 }
 .pane .cards > .post:not(.alert) { margin: 0 0 12px; }
 .pane .post.alert { margin: 0; }
@@ -429,8 +438,6 @@ main { padding-bottom: 72px; }
   .band .level { bottom: 12px; }
   .band .sun { width: 92px; }
   .post.alert { padding: 22px 20px; }
-  .examples-title, .examples-note { padding-left: 18px; padding-right: 18px; }
   .composer button { width: 100%; margin-left: 0; }
-  .composer button.tool { width: auto; }
   .media { aspect-ratio: 4 / 3; }
 }

@@ -4,25 +4,26 @@
 
 {% block content %}
   {% macro composer() %}
-    <form class="composer" method="post" action="{{ url_for('board.create') }}">
+    <form class="composer" method="post" action="{{ url_for('board.create') }}" enctype="multipart/form-data">
       <select name="kind" aria-label="Post type">
         {% for kind in kinds %}<option value="{{ kind }}">{{ kind }}</option>{% endfor %}
       </select>
       <input name="author" placeholder="Name (optional)" maxlength="60">
+      <input class="days" type="number" name="days" min="1" max="{{ max_days }}" required
+             placeholder="Days up" aria-label="Days the post stays up (1 to {{ max_days }}, today counts as 1)"
+             title="Days the post stays up, today counts as 1. It is deleted at midnight after the last day.">
       <textarea name="body" required aria-label="Your post" placeholder="Share an idea, a question or an alert…"></textarea>
-      {% if tier == 'full' %}
-        {# PLACEHOLDER (no logic yet): these buttons do nothing. They show where photo and video upload will go. #}
-        <div class="tools">
-          <button type="button" class="tool">Photo</button>
-          <button type="button" class="tool">Video</button>
-        </div>
-      {% endif %}
+      {# same input in every tier: the browser's own picker, no JS needed #}
+      <label class="attach">Photos or videos (up to 4)
+        <input type="file" name="media" multiple
+               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+      </label>
       <button type="submit">Post</button>
     </form>
   {% endmacro %}
 
-  {% macro post_item(post, index) %}
-    <li class="post {{ post.kind }}">
+  {% macro post_item(post) %}
+    <li class="post {{ post.kind }}" id="post-{{ post.id }}">
       {% if tier == 'full' %}
         {% if post.kind == 'message' %}
           <strong class="author">{{ post.author or 'anonymous' }}</strong>
@@ -35,31 +36,40 @@
         {{ post.author or 'anonymous' }}
       {% endif %}
       <p>{{ post.body }}</p>
-      {% if tier == 'full' and post.kind != 'alert' %}
-        {# PLACEHOLDER (no logic yet): posts have no media field, so a stand-in is picked by post kind and position.
-           Replace this block with real post media when the backend supports it. #}
-        {% if post.kind == 'news' %}
-          <div class="media">
-            <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="Placeholder photo" loading="lazy">
-            <span class="chip">Photo</span>
+      {% if post.attachments %}
+        {% if tier == 'full' %}
+          <div class="{{ 'media-grid' if post.attachments|length > 1 else 'media-single' }}">
+            {% for a in post.attachments %}
+              {% set src = url_for('board.media', filename=a.filename) %}
+              <div class="media {{ 'media-video' if a.kind == 'video' }}">
+                {% if a.kind == 'image' %}
+                  <a href="{{ src }}"><img src="{{ src }}" alt="{{ a.original_name or 'Photo' }}" loading="lazy"></a>
+                {% else %}
+                  <video src="{{ src }}" controls preload="none"></video>
+                {% endif %}
+                <span class="chip">{{ 'Photo' if a.kind == 'image' else 'Video' }}{% if loop.length > 1 %} {{ loop.index }} of {{ loop.length }}{% endif %}</span>
+              </div>
+            {% endfor %}
           </div>
-        {% elif index is even %}
-          <div class="media media-video">
-            <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="Placeholder video thumbnail" loading="lazy">
-            <span class="chip">Video</span>
-            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span>
-            <span class="duration">0:42</span>
-          </div>
+        {% else %}
+          {# lower tiers: links only, with the size so people can judge the download #}
+          <ul class="attachments">
+            {% for a in post.attachments %}
+              <li><a href="{{ url_for('board.media', filename=a.filename) }}">{{ 'photo' if a.kind == 'image' else 'video' }}: {{ a.original_name }}</a> ({{ a.size|filesizeformat }})</li>
+            {% endfor %}
+          </ul>
         {% endif %}
-        {# PLACEHOLDER (no logic yet): reaction buttons do nothing and the numbers are fixed. #}
-        <div class="reactions" role="group" aria-label="Reactions">
-          <button type="button" aria-label="React with a seedling, 12">🌱 12</button>
-          <button type="button" aria-label="React with a sun, 5">☀️ 5</button>
-          <button type="button" aria-label="React with clapping hands, 8">👏 8</button>
-          <button type="button" aria-label="React with a green heart, 3">💚 3</button>
-        </div>
       {% endif %}
-      <small>{{ post.created }}</small>
+      {# plain form, so it works in every tier without JS #}
+      <form class="reactions" method="post" action="{{ url_for('board.heart', post_id=post.id) }}">
+        <button type="submit" aria-label="Give a green heart, {{ post.hearts }} so far">💚 {{ post.hearts }}</button>
+      </form>
+      <small class="when">
+        <time datetime="{{ post.created.isoformat() }}Z">{{ post.created|posted }}</time>
+        <span class="sep" aria-hidden="true">·</span>
+        <span class="ends{{ ' soon' if post.expires_on <= today }}"
+              title="Deleted at midnight after {{ post.expires_on.strftime('%A %d %B %Y') }}">{{ post.expires_on|ends }}</span>
+      </small>
     </li>
   {% endmacro %}
 
@@ -71,69 +81,10 @@
         {{ composer() }}
         <ul id="feed" class="cards">
           {% for post in posts if post.kind == 'message' %}
-            {{ post_item(post, loop.index) }}
+            {{ post_item(post) }}
           {% else %}
             <li class="empty">No messages yet. Write the first one above.</li>
           {% endfor %}
-        </ul>
-
-        {# PLACEHOLDER (no logic yet): fixed example posts to judge the design with photos, videos and emojis.
-           They are plain markup, not saved anywhere. Delete this block (and the example in the right column) when real posts carry media. #}
-        <div class="examples">
-          <h2 class="examples-title">Example posts</h2>
-          <p class="examples-note">Placeholders to show how photos, videos and emojis will look.</p>
-        </div>
-        <ul id="examples" class="cards">
-      <li class="post message">
-        <strong class="author">Sam</strong>
-        <p>Our rooftop garden is finally in bloom 🌱 The tomatoes are ripe and the bees have moved in 🐝 Come and see it this weekend!</p>
-        <div class="media">
-          <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="Placeholder photo" style="object-position: 50% 6%" loading="lazy">
-          <span class="chip">Photo</span>
-        </div>
-        <div class="reactions" role="group" aria-label="Reactions">
-            <button type="button" aria-label="React with a seedling, 32">🌱 32</button>
-            <button type="button" aria-label="React with a sun, 18">☀️ 18</button>
-            <button type="button" aria-label="React with clapping hands, 12">👏 12</button>
-            <button type="button" aria-label="React with a bee, 7">🐝 7</button>
-          <a class="replies" href="#examples">24 replies</a>
-        </div>
-        <small>Example post, not saved</small>
-      </li>
-      <li class="post message">
-        <strong class="author">Mika</strong>
-        <p>Photos from yesterday’s community bike repair 🚲🛠️ Thank you to everyone who brought tools and cake 🍰</p>
-        <div class="media-grid">
-          <div class="media">
-            <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="Placeholder photo 1" style="object-position: 50% 30%" loading="lazy">
-            <span class="chip">Photo 1 of 2</span>
-          </div>
-          <div class="media">
-            <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="Placeholder photo 2" style="object-position: 50% 80%" loading="lazy">
-            <span class="chip">Photo 2 of 2</span>
-          </div>
-        </div>
-        <div class="reactions" role="group" aria-label="Reactions">
-            <button type="button" aria-label="React with a bicycle, 16">🚲 16</button>
-            <button type="button" aria-label="React with heart eyes, 8">😍 8</button>
-            <button type="button" aria-label="React with a green heart, 13">💚 13</button>
-            <button type="button" aria-label="React with a cake, 4">🍰 4</button>
-          <a class="replies" href="#examples">6 replies</a>
-        </div>
-        <small>Example post, not saved</small>
-      </li>
-      <li class="post message">
-        <strong class="author">Jules</strong>
-        <p>Thank you all for helping with the market stall yesterday 🙌🍅💚 See you next Saturday!</p>
-
-        <div class="reactions" role="group" aria-label="Reactions">
-            <button type="button" aria-label="React with raised hands, 27">🙌 27</button>
-            <button type="button" aria-label="React with a tomato, 9">🍅 9</button>
-            <button type="button" aria-label="React with a green heart, 19">💚 19</button>
-          <a class="replies" href="#examples">11 replies</a>
-        </div>
-        <small>Example post, not saved</small>
-      </li>
         </ul>
       </section>
 
@@ -141,30 +92,10 @@
         <h2 class="pane-title">Alerts and news</h2>
         <ul id="alerts-news" class="stack">
           {% for post in posts if post.kind != 'message' %}
-            {{ post_item(post, loop.index) }}
+            {{ post_item(post) }}
           {% else %}
             <li class="empty">No alerts or news right now.</li>
           {% endfor %}
-          {# PLACEHOLDER (no logic yet): example news post, see the note in the left column. #}
-          <li class="post news">
-            <strong>news</strong>
-            <span class="author">Robin</span>
-            <p>Workshop recording: how to build a small solar charger ☀️🔧 Missed Saturday’s session? The full video is here.</p>
-            <div class="media media-video">
-              <img src="{{ url_for('static', filename='img/placeholder.jpg') }}" alt="Placeholder video thumbnail" style="object-position: 50% 52%" loading="lazy">
-              <span class="chip">Video</span>
-              <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span>
-              <span class="duration">12:34</span>
-            </div>
-            <div class="reactions" role="group" aria-label="Reactions">
-                <button type="button" aria-label="React with a sun, 22">☀️ 22</button>
-                <button type="button" aria-label="React with a wrench, 10">🔧 10</button>
-                <button type="button" aria-label="React with clapping hands, 14">👏 14</button>
-                <button type="button" aria-label="React with raised hands, 5">🙌 5</button>
-              <a class="replies" href="#alerts-news">9 replies</a>
-            </div>
-            <small>Example post, not saved</small>
-          </li>
         </ul>
       </aside>
     </div>
@@ -173,7 +104,7 @@
     {{ composer() }}
     <ul id="feed">
       {% for post in posts %}
-        {{ post_item(post, loop.index) }}
+        {{ post_item(post) }}
       {% endfor %}
     </ul>
   {% endif %}

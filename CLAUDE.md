@@ -17,13 +17,13 @@ A web app meant to run on a small solar-powered server in a solarpunk future of 
 ```
 app/
   __init__.py   create_app factory, registers blueprints
-  db.py         SQLAlchemy instance, Post model, `init-db` CLI command (drops, creates, seeds)
+  db.py         SQLAlchemy instance, Post and Attachment models, `init-db` (drops, empties uploads, creates, seeds) and `purge-expired` CLI commands
   energy.py     model constants, read_energy, set_energy, choose_tier; before_request + context_processor
-  board.py      blueprint: feed (/) and post creation (/post)
+  board.py      blueprint: feed (/), post creation with uploads (/post), media files (/media/<filename>)
   demo.py       blueprint: /demo battery/sun/wind controls and PRESETS
   templates/    base.html, board/, demo/
   static/       css/<tier>.css, css/demo.css, js/
-instance/       SQLite file (gitignored)
+instance/       SQLite file and uploads/ (gitignored)
 docs/           planning notes: IDEAS.md, MEDIA-UPLOAD.md (planned photo/video uploads)
 ```
 
@@ -46,17 +46,21 @@ One set of templates, one CSS file per page-rendering tier. The CSS file name mu
 - Post kinds: `message`, `news`, `alert`. Alerts are pinned at the top in every tier.
 - Author name is optional. No auth.
 - Posting is a plain HTML form (POST, redirect, GET), so it works without JS in every tier.
+- Every post has a lifetime chosen by the poster: required `days` field, 1 to `MAX_DAYS` (30, in `board.py`), today counts as day 1. Stored as `Post.expires_on` (last day shown, local date). `flask --app app purge-expired`, run by cron at 00:00, deletes every expired post of every kind plus its upload files. The feed also filters out expired posts, so nothing stale shows if cron didn't run. Seeds: the alert lasts 1 day, the rest 7.
+- Reactions: one 💚 counter per post (`Post.hearts`), every kind, every tier. Plain form POST to `/post/<id>/heart`, incremented in SQL, redirects back to `#post-<id>`. No auth, so no per-person limit: one person can click many times. Expired or unknown posts give 404.
+- Photos and videos: up to `MAX_FILES` (4) per post via one `<input type=file multiple>`, request capped by `MAX_CONTENT_LENGTH` (50 MB, 413 flashes a message). Allowed types in `MEDIA_TYPES` in `board.py` (jpg/jpeg/png/webp/gif, mp4/webm; no SVG); extension and browser mimetype must agree. Text is still required. Files are saved as `uuid4().hex` + extension in `instance/uploads/`, served by `/media/<filename>` (so `rest` blocks them too). `full` shows them inline (`<img loading=lazy>`, `<video preload=none>`); lower tiers show text links with file sizes. See `docs/MEDIA-UPLOAD.md`.
 - JavaScript: allowed in the `full` tier (loaded by `base.html` only when the tier is `full`). `minimal` has none for now; whether it keeps any is undecided. `rest` sends no page. JS may only enhance how things look or update; every feature must still work without it.
 - Energy is simulated from `/demo`: battery, sun and wind speed sliders, plus preset buttons (`PRESETS` dict in `demo.py`: sunny day, calm night, windy night, storm, covering every tier) handled by the same POST route. Plain forms, plus an inline `oninput` per slider that updates its displayed value live (`/demo` is outside the tiers, so the JS rule above doesn't apply to it). `/demo` is outside the simulation (it wouldn't exist on the real server): its template is standalone (doesn't extend `base.html`) with a fixed `css/demo.css`, so it looks the same at every battery level. Current store is an in-memory dict in `energy.py`, deliberately behind `read_energy`/`set_energy` so it can be swapped for a table.
 
 ## Not building unless time remains
 
-Energy-budget formula, hysteresis, footprint/energy label, measurement, image dithering, real forecast (Open-Meteo), comments/likes.
+Energy-budget formula, hysteresis, footprint/energy label, measurement, image dithering, real forecast (Open-Meteo), comments, other reaction emojis.
 
 ## Open items
 
 - JS in `minimal`: keep it JS-free or allow some (e.g. feed refresh). Until decided, minimal needs a manual reload or `<meta http-equiv="refresh">` to see new posts.
 - `static/js/refresh.js` is a stub.
+- Uploads: EXIF (GPS) is not stripped and there are no thumbnails, both need Pillow. Seed posts have no media.
 - Final values for the energy constants and tier thresholds.
 - Should `rest` stay a plain battery threshold, or be driven by runway too?
 
@@ -73,4 +77,10 @@ Energy-budget formula, hysteresis, footprint/energy label, measurement, image di
 source .venv/bin/activate
 flask --app app init-db     # once, and after model changes (wipes data)
 flask --app app run --debug
+```
+
+Nightly expiry (crontab -e), deletes posts whose last day is over:
+
+```
+0 0 * * * cd /path/to/odoo-hackathon-6 && .venv/bin/flask --app app purge-expired
 ```
