@@ -1,53 +1,128 @@
-/* /demo only: fixed style, independent of the energy tier */
+/* /demo only: fixed style, independent of the energy tier. Looks like the minimal tier
+   (warm paper colours, plain sans-serif, cream card, dark pill buttons; no images, no
+   web fonts) but never changes with the battery. */
+
 :root {
-  --bg: #f4f5f0; --panel: #fff; --text: #1d211c; --muted: #6b7166;
-  --line: #dfe2d9; --accent: #3f7d4e;
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #151814; --panel: #1e221d; --text: #e6e9e2; --muted: #9aa195;
-          --line: #30362e; --accent: #7fbf8c; }
+  --paper: #f3eadb;
+  --card: #faf5eb;
+  --sunk: #e9dcc6;
+  --line: #d9c9ae;
+  --ink: #2f2a24;
+  --muted: #6e6457;
+  --alert: #a3422a;      /* terracotta */
+  --alert-bg: #f5e1d4;
+  --news: #56663a;       /* olive */
+  --news-bg: #eeecd9;
 }
 
 * { box-sizing: border-box; }
+
 body {
-  margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1rem;
-  background: var(--bg); color: var(--text);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
 }
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
 .panel {
-  width: 100%; max-width: 26rem; padding: 1.75rem;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  width: 100%;
+  max-width: 30rem;
+  padding: 24px 28px 28px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
 }
-h1 { margin: 0; font-size: 1.25rem; }
-.hint { margin: .25rem 0 1.5rem; color: var(--muted); font-size: .9rem; }
 
-label { display: flex; justify-content: space-between; font-weight: 600;
-        margin: 1rem 0 .4rem; }
-label .now { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
-input[type=range] { width: 100%; accent-color: var(--accent); }
-
-.presets { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.presets button { margin-top: 0; background: transparent; color: var(--accent);
-                  border: 1px solid var(--accent); text-transform: capitalize; }
-
-button {
-  margin-top: 1rem; width: 100%; padding: .6rem; border: 0; border-radius: 8px;
-  background: var(--accent); color: var(--panel); font: inherit; font-weight: 600;
-  cursor: pointer;
+/* large plain title, like the minimal board's masthead */
+h1 {
+  margin: 0;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
-button:hover { filter: brightness(1.08); }
+.hint { margin: 8px 0 24px; color: var(--muted); font-size: 15px; }
 
-.state { margin: 1.5rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line);
-         display: grid; grid-template-columns: 1fr auto; gap: .35rem 1rem; }
+button { font: inherit; cursor: pointer; }
+
+/* ---- presets: outlined pills, like the minimal file picker ---- */
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.presets button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.presets button:hover { background: var(--ink); color: var(--paper); }
+
+/* ---- sliders ---- */
+label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 22px 0 6px;
+  font-weight: 600;
+}
+label .now { color: var(--muted); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; margin: 0; accent-color: var(--ink); }
+
+/* dark pill, like the minimal Post button */
+.apply {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+}
+.apply:hover { background: #000; }
+
+/* ---- readout ---- */
+.state {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  margin: 28px 0 0;
+  padding: 16px 18px;
+  background: var(--sunk);
+  border-radius: 4px;
+}
 .state dt { color: var(--muted); }
-.state dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-.tier { padding: .1rem .55rem; border-radius: 999px; font-size: .85rem; font-weight: 600;
-        border: 1px solid currentColor; }
-.tier-full { color: var(--accent); }
-.tier-minimal { color: var(--muted); }
-.tier-rest { color: #c0533a; }
+.state dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.back { display: inline-block; margin-top: 1.25rem; color: var(--accent);
-        text-decoration: none; font-weight: 600; }
+/* tier badge in the board's post colours: news olive, plain, alert terracotta */
+.tier {
+  display: inline-block;
+  padding: 0 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.tier-full { color: var(--news); background: var(--news-bg); }
+.tier-minimal { color: var(--ink); background: var(--card); }
+.tier-rest { color: var(--alert); background: var(--alert-bg); }
+
+.back { display: inline-block; margin-top: 20px; font-weight: 600; text-decoration: none; }
 .back:hover { text-decoration: underline; }
+
+@media (max-width: 560px) {
+  .panel { padding: 18px; }
+  h1 { font-size: 34px; }
+}

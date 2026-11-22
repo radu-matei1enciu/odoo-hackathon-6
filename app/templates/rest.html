@@ -1,0 +1,23 @@
+<!doctype html>
+{# rest tier: standalone, no stylesheet, no images, no JS. Only the alerts. #}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Community board: resting</title>
+</head>
+<body>
+  <h1>Community board</h1>
+  <p>{{ message }}</p>
+  <h2>Alerts</h2>
+  {% for post in alerts %}
+    <p>
+      <b>{{ post.author or 'anonymous' }}</b>, {{ post.created|posted }} ({{ post.expires_on|ends|lower }})<br>
+      {# keep the poster's line breaks; each line is still escaped #}
+      {% for line in post.body.splitlines() %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+    </p>
+  {% else %}
+    <p>No alerts right now.</p>
+  {% endfor %}
+</body>
+</html>

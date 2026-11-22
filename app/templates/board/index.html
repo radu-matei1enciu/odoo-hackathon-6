@@ -9,9 +9,9 @@
         {% for kind in kinds %}<option value="{{ kind }}">{{ kind }}</option>{% endfor %}
       </select>
       <input name="author" placeholder="Name (optional)" maxlength="60">
-      <input class="days" type="number" name="days" min="1" max="{{ max_days }}" required
-             placeholder="Days up" aria-label="Days the post stays up (1 to {{ max_days }}, today counts as 1)"
-             title="Days the post stays up, today counts as 1. It is deleted at midnight after the last day.">
+      <input class="days" type="number" name="days" min="1" max="{{ max_days }}"
+             placeholder="Days up (1)" aria-label="Days the post stays up (1 to {{ max_days }}, today counts as 1, empty means 1)"
+             title="Days the post stays up, today counts as 1. Leave empty for 1 day. It is deleted at midnight after the last day.">
       <textarea name="body" required aria-label="Your post" placeholder="Share an idea, a question or an alert…"></textarea>
       {# same input in every tier: the browser's own picker, no JS needed #}
       <label class="attach">Photos or videos (up to 4)
@@ -24,16 +24,11 @@
 
   {% macro post_item(post) %}
     <li class="post {{ post.kind }}" id="post-{{ post.id }}">
-      {% if tier == 'full' %}
-        {% if post.kind == 'message' %}
-          <strong class="author">{{ post.author or 'anonymous' }}</strong>
-        {% else %}
-          <strong>{{ post.kind }}</strong>
-          <span class="author">{{ post.author or 'anonymous' }}</span>
-        {% endif %}
+      {% if post.kind == 'message' %}
+        <strong class="author">{{ post.author or 'anonymous' }}</strong>
       {% else %}
         <strong>{{ post.kind }}</strong>
-        {{ post.author or 'anonymous' }}
+        <span class="author">{{ post.author or 'anonymous' }}</span>
       {% endif %}
       <p>{{ post.body }}</p>
       {% if post.attachments %}
@@ -52,12 +47,28 @@
             {% endfor %}
           </div>
         {% else %}
-          {# lower tiers: links only, with the size so people can judge the download #}
-          <ul class="attachments">
+          {# lower tiers: a placeholder with the alt text and size; "Show" opens it in place.
+             <details> needs no JS, and a lazy image inside a closed <details> isn't rendered,
+             so it isn't downloaded until opened. Once open, the summary hides and the image
+             takes its place, as if it had loaded with the page. #}
+          <div class="placeholders{{ ' many' if post.attachments|length > 1 }}">
             {% for a in post.attachments %}
-              <li><a href="{{ url_for('board.media', filename=a.filename) }}">{{ 'photo' if a.kind == 'image' else 'video' }}: {{ a.original_name }}</a> ({{ a.size|filesizeformat }})</li>
+              {% set src = url_for('board.media', filename=a.filename) %}
+              {% set label = 'Photo' if a.kind == 'image' else 'Video' %}
+              <details class="placeholder">
+                <summary>
+                  <span class="alt">{{ a.original_name or label }}</span>
+                  <span class="meta">{{ label }}{% if loop.length > 1 %} {{ loop.index }} of {{ loop.length }}{% endif %} · {{ a.size|filesizeformat }}</span>
+                  <span class="show">Show {{ label|lower }}</span>
+                </summary>
+                {% if a.kind == 'image' %}
+                  <img src="{{ src }}" alt="{{ a.original_name or label }}" loading="lazy">
+                {% else %}
+                  <video src="{{ src }}" controls preload="none"></video>
+                {% endif %}
+              </details>
             {% endfor %}
-          </ul>
+          </div>
         {% endif %}
       {% endif %}
       {# plain form, so it works in every tier without JS #}
@@ -80,8 +91,8 @@
     </li>
   {% endmacro %}
 
-  {% if tier == 'full' %}
-    {# Split screen: messages on the left scroll with the page, alerts and news on the right stay in view and scroll on their own. #}
+  {# Split screen in every page tier. full: messages on the left scroll with the page, alerts and
+     news on the right stay in view and scroll on their own. minimal: two plain columns. #}
     <div class="split">
       <section class="pane pane-messages" aria-label="Messages">
         <h2 class="pane-title">Messages</h2>
@@ -106,13 +117,7 @@
         </ul>
       </aside>
     </div>
+  {% if tier == 'full' %}
     <script src="{{ url_for('static', filename='js/cards.js') }}" defer></script>
-  {% else %}
-    {{ composer() }}
-    <ul id="feed">
-      {% for post in posts %}
-        {{ post_item(post) }}
-      {% endfor %}
-    </ul>
   {% endif %}
 {% endblock %}

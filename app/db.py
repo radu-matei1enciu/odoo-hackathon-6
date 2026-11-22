@@ -19,7 +19,9 @@ class Post(db.Model):
     body = db.Column(db.Text, nullable=False)
     created = db.Column(db.DateTime, nullable=False, server_default=func.now())
     # last day the post is shown; purge-expired deletes it at the midnight after
-    expires_on = db.Column(db.Date, nullable=False, default=1)
+    expires_on = db.Column(
+        db.Date, nullable=False, default=date.today
+    )  # no lifetime given: 1 day, today is the last day
     hearts = db.Column(
         db.Integer, nullable=False, default=0
     )  # green heart count, no per-person limit

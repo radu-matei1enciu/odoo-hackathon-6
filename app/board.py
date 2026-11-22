@@ -90,20 +90,24 @@ def create():
     body = request.form.get("body", "").strip()
     kind = request.form.get("kind", "message")
     author = request.form.get("author", "").strip() or None
-    days = request.form.get("days", type=int)
+    # blank means the model's default lifetime (1 day); garbage counts as invalid
+    days_raw = request.form.get("days", "").strip()
+    days = request.form.get("days", type=int) if days_raw else None
     # an empty file input still sends one part with no filename
     files = [f for f in request.files.getlist("media") if f.filename]
 
     if not body or kind not in KINDS:
         flash("A post needs some text.")
-    elif days is None or not 1 <= days <= MAX_DAYS:
+    elif days_raw and (days is None or not 1 <= days <= MAX_DAYS):
         flash(f"Say how many days the post stays up (1 to {MAX_DAYS}).")
     elif len(files) > MAX_FILES:
         flash(f"A post can have at most {MAX_FILES} photos or videos.")
     elif not all(media_kind(f) for f in files):
         flash("Only photos (JPG, PNG, WebP, GIF) and videos (MP4, WebM) can be added.")
     else:
-        post = Post(kind=kind, author=author, body=body, expires_on=expires_on(days))
+        post = Post(kind=kind, author=author, body=body)
+        if days:
+            post.expires_on = expires_on(days)
         for f in files:
             ext = f.filename.rsplit(".", 1)[-1].lower()
             filename = f"{uuid.uuid4().hex}.{ext}"

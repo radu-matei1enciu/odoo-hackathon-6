@@ -1,4 +1,8 @@
-from flask import g, request
+from datetime import date
+
+from flask import g, render_template, request
+
+from .db import Post, db
 
 # Placeholder constants, easy to tweak
 CAPACITY_WH = 100       # battery capacity
@@ -12,10 +16,10 @@ WIND_MAX = 30           # m/s, top of the demo input range
 RUNWAY_FULL_H = 12      # runway at or above this (or charging) means "full"
 REST_BELOW = 10         # battery % below which the site rests
 
-TIERS = ("full", "minimal", "rest")  # best to worst; rest sends REST_MESSAGE only
+TIERS = ("full", "minimal", "rest")  # best to worst; rest sends REST_MESSAGE and the alerts only
 REST_MESSAGE = (
-    "Solar board is down: the battery is low. "
-    f"It will come back up when the battery is at {REST_BELOW}% or more.\n"
+    "The board is resting: the battery is low, so only alerts are shown. "
+    f"Everything comes back when the battery is at {REST_BELOW}% or more."
 )
 
 # Placeholder store for the simulated causes. Open decision: keep in memory
@@ -74,7 +78,13 @@ def init_app(app):
         # static files it needs stay up, otherwise the battery can't be raised again
         if g.tier == "rest" and request.blueprint != "demo" \
                 and request.endpoint != "static":
-            return REST_MESSAGE, 503, {"Content-Type": "text/plain; charset=utf-8"}
+            # only alerts, the most important posts, as bare HTML (no CSS, no media)
+            alerts = db.session.scalars(
+                db.select(Post).where(
+                    Post.kind == "alert", Post.expires_on >= date.today()
+                ).order_by(Post.created.desc(), Post.id.desc())
+            ).all()
+            return render_template("rest.html", message=REST_MESSAGE, alerts=alerts)
 
     @app.context_processor
     def inject_energy():
