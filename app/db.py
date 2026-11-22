@@ -103,29 +103,6 @@ def init_db_command():
             body="Does anyone have a spare 28 inch bike tube? Can pay in tomatoes.",
         ),
         Post(
-            kind="message",
-            body="Lost a green thermos near the market on Thursday, dent on the lid. "
-            "If you find it please leave it at the bakery.",
-        ),
-        Post(
-            kind="message",
-            author="Sam",
-            body="Rooftop garden on Elm Street is finally blooming. The tomatoes are "
-            "ripe and we have bees now. Come up on Sunday if you want a look, door's open.",
-        ),
-        Post(
-            kind="message",
-            author="Mika",
-            body="Thanks to everyone who came to the bike repair afternoon. We got 14 "
-            "bikes running again and somebody brought a whole cake. Same again next month.",
-        ),
-        Post(
-            kind="message",
-            author="Jules",
-            body="Thanks for the help at the market stall yesterday, the jam was gone "
-            "by noon. Same time next Saturday?",
-        ),
-        Post(
             kind="news",
             author="Robin",
             body="Running the solar charger workshop again next Saturday for those "
